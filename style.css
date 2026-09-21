@@ -1,37 +1,18 @@
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
-
 ::-webkit-scrollbar-track {
     background: #0f172a;
 }
-
 ::-webkit-scrollbar-thumb {
     background: #334155;
     border-radius: 9999px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-    background: #475569;
-}
-
-/* Hide Horizontal Scrollbar for Categories */
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
-}
-
-/* Image Card Hover Animations */
-.photo-card-overlay {
-    transition: opacity 0.25s ease-in-out;
-}
-
-/* Smooth Image Loading */
-img {
-    content-visibility: auto;
 }
