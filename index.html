@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -35,51 +36,59 @@
     <!-- External CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col antialiased">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased transition-colors duration-200">
 
     <!-- Notification Toast -->
-    <div id="toast" class="fixed top-20 right-5 z-50 transform translate-x-full transition-transform duration-300 ease-in-out bg-slate-800 text-white border border-brand-500/30 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none opacity-0">
+    <div id="toast" class="fixed top-20 right-5 z-50 transform translate-x-full transition-transform duration-300 ease-in-out bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-brand-500/30 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none opacity-0">
         <i id="toast-icon" class="fas fa-check-circle text-brand-500 text-lg"></i>
         <span id="toast-message" class="text-sm font-medium">Notification message</span>
     </div>
 
     <!-- Navigation Header -->
-    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 
                 <!-- Logo -->
-                <div class="flex items-center space-x-3 cursor-pointer" onclick="window.resetView && window.resetView()">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="window.setViewMode('all')">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-brand-500/20">
                         <i class="fas fa-camera-retro"></i>
                     </div>
-                    <span class="text-xl font-bold tracking-tight text-white">Openpic<span class="text-brand-500">Hub</span></span>
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Openpic<span class="text-brand-500">Hub</span></span>
                 </div>
 
                 <!-- Header Search -->
                 <div class="hidden md:flex flex-1 max-w-md mx-8">
                     <div class="relative w-full">
                         <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="headerSearchInput" oninput="window.triggerSearch('headerSearchInput')" placeholder="Search free high-res photos..." class="w-full bg-slate-800 border border-slate-700/80 rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-brand-500">
+                        <input type="text" id="headerSearchInput" oninput="window.triggerSearch('headerSearchInput')" placeholder="Search free high-res photos..." class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-full pl-10 pr-4 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500">
                     </div>
                 </div>
 
                 <!-- Desktop Actions -->
-                <div class="hidden md:flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-3">
+                    <!-- Dark / Light Mode Toggle Button -->
+                    <button onclick="window.toggleTheme()" class="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors" title="Toggle Light/Dark Theme">
+                        <i id="themeIcon" class="fas fa-moon text-lg"></i>
+                    </button>
+
                     <button id="uploadTriggerBtn" onclick="window.handleUploadClick()" class="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-full font-medium text-sm transition-all shadow-md hover:shadow-brand-500/20">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <span>Upload Photo</span>
                     </button>
 
                     <!-- Dynamic Auth Container -->
-                    <div id="authNavContainer" class="flex items-center space-x-3">
-                        <button onclick="window.openAuthModal('login')" class="text-slate-300 hover:text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">Log In</button>
-                        <button onclick="window.openAuthModal('signup')" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium px-4 py-2 rounded-full border border-slate-700 transition-colors">Sign Up</button>
+                    <div id="authNavContainer" class="flex items-center space-x-2">
+                        <button onclick="window.openAuthModal('login')" class="text-slate-700 dark:text-slate-300 hover:text-brand-500 text-sm font-medium px-3 py-2 rounded-lg transition-colors">Log In</button>
+                        <button onclick="window.openAuthModal('signup')" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-sm font-medium px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 transition-colors">Sign Up</button>
                     </div>
                 </div>
 
-                <!-- Mobile menu button -->
+                <!-- Mobile Header Menu -->
                 <div class="flex md:hidden items-center space-x-2">
+                    <button onclick="window.toggleTheme()" class="p-2 text-slate-600 dark:text-slate-300">
+                        <i id="themeIconMobile" class="fas fa-moon"></i>
+                    </button>
                     <button onclick="window.handleUploadClick()" class="p-2 bg-brand-600 text-white rounded-lg text-sm">
                         <i class="fas fa-upload"></i>
                     </button>
@@ -88,28 +97,41 @@
         </div>
     </header>
 
+    <!-- View Mode Nav Tabs (All Photos / Saved Favorites / My Uploads) -->
+    <section class="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 py-2">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex space-x-2 text-sm font-semibold">
+                <button id="viewTabAll" onclick="window.setViewMode('all')" class="px-4 py-2 rounded-xl bg-brand-600 text-white transition-all shadow-sm">
+                    <i class="fas fa-globe mr-1.5"></i> All Photos
+                </button>
+                <button id="viewTabSaved" onclick="window.setViewMode('saved')" class="px-4 py-2 rounded-xl bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">
+                    <i class="fas fa-bookmark mr-1.5"></i> Saved (<span id="savedCount">0</span>)
+                </button>
+                <button id="viewTabMy" onclick="window.setViewMode('my')" class="px-4 py-2 rounded-xl bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">
+                    <i class="fas fa-user-circle mr-1.5"></i> My Uploads
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- Main Content -->
     <main class="flex-grow">
-        <!-- Hero Banner -->
-        <section class="relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-16 md:py-24 px-4 border-b border-slate-800/80">
+        <!-- Hero Banner (Shows only in 'All Photos' mode) -->
+        <section id="heroSection" class="relative bg-gradient-to-b from-slate-100 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12 md:py-20 px-4 border-b border-slate-200 dark:border-slate-800">
             <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
-                <span class="inline-flex items-center space-x-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                <span class="inline-flex items-center space-x-2 bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
                     <i class="fas fa-globe"></i>
                     <span>Global Cloud Database Powered</span>
                 </span>
                 
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
-                    Stunning imagery for your <br class="hidden sm:inline"><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-emerald-300 to-teal-200">creative projects.</span>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+                    Stunning imagery for your <br class="hidden sm:inline"><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-emerald-400 to-teal-300">creative projects.</span>
                 </h1>
-                
-                <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto font-light">
-                    Share and download high-resolution stock photos globally. Powered by Firebase Authentication & Firestore.
-                </p>
 
                 <div class="max-w-2xl mx-auto pt-2">
-                    <div class="relative flex items-center shadow-2xl rounded-2xl overflow-hidden bg-slate-800/90 border border-slate-700/80 focus-within:border-brand-500">
+                    <div class="relative flex items-center shadow-2xl rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus-within:border-brand-500">
                         <i class="fas fa-search text-slate-400 text-lg pl-5 pr-2"></i>
-                        <input type="text" id="heroSearchInput" placeholder="Search photos..." class="w-full bg-transparent text-white px-2 py-4 text-sm sm:text-base focus:outline-none">
+                        <input type="text" id="heroSearchInput" placeholder="Search photos by title..." class="w-full bg-transparent text-slate-900 dark:text-white px-2 py-4 text-sm sm:text-base focus:outline-none">
                         <button onclick="window.triggerSearch('heroSearchInput')" class="bg-brand-600 hover:bg-brand-500 text-white px-6 py-4 font-semibold text-sm">Search</button>
                     </div>
                 </div>
@@ -117,7 +139,7 @@
         </section>
 
         <!-- Categories Nav Bar -->
-        <section class="sticky top-16 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 py-3">
+        <section id="categorySection" class="sticky top-16 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 py-3">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div id="categoryContainer" class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1 text-sm font-medium">
                 </div>
@@ -128,10 +150,10 @@
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 id="galleryTitle" class="text-xl font-bold text-white">Community Photos</h2>
-                    <p id="gallerySubtitle" class="text-xs text-slate-400">Live images stored in Firebase Cloud Database</p>
+                    <h2 id="galleryTitle" class="text-xl font-bold text-slate-900 dark:text-white">Community Photos</h2>
+                    <p id="gallerySubtitle" class="text-xs text-slate-500 dark:text-slate-400">Live images stored in Firebase Cloud Database</p>
                 </div>
-                <span id="photoCountBadge" class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full border border-slate-700">Loading...</span>
+                <span id="photoCountBadge" class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700">Loading...</span>
             </div>
 
             <!-- Gallery Grid -->
@@ -140,82 +162,146 @@
         </section>
     </main>
 
-    <!-- MODAL 1: Auth Modal -->
-    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 sm:p-8 relative">
-            <button onclick="window.closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+    <!-- MODAL 1: Full-Screen Image Lightbox Preview -->
+    <div id="lightboxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 hidden">
+        <div class="relative w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <!-- Header bar -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/80">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm" id="lightboxAvatar">U</div>
+                    <div>
+                        <h4 id="lightboxUploader" class="text-sm font-bold text-white">Uploader Name</h4>
+                        <p id="lightboxDate" class="text-xs text-slate-400">Uploaded date</p>
+                    </div>
+                </div>
+                <button onclick="window.closeLightbox()" class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <!-- Image Container -->
+            <div class="flex-grow overflow-hidden bg-black flex items-center justify-center p-2">
+                <img id="lightboxImage" src="" alt="Preview" class="max-h-[60vh] w-auto object-contain rounded-xl">
+            </div>
 
-            <div class="flex border-b border-slate-800 mb-6">
+            <!-- Image Details & Actions Footer -->
+            <div class="p-6 border-t border-slate-800 bg-slate-900 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h3 id="lightboxTitle" class="text-xl font-bold text-white">Photo Title</h3>
+                        <span id="lightboxCategory" class="inline-block mt-1 text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 px-2.5 py-0.5 rounded-full font-medium">Category</span>
+                    </div>
+
+                    <!-- Metrics -->
+                    <div class="flex items-center space-x-6 text-slate-300 text-sm">
+                        <div class="flex items-center space-x-1.5"><i class="fas fa-eye text-slate-400"></i><span id="lightboxViews">0</span> views</div>
+                        <div class="flex items-center space-x-1.5"><i class="fas fa-heart text-red-500"></i><span id="lightboxLikes">0</span> likes</div>
+                        <div class="flex items-center space-x-1.5"><i class="fas fa-download text-brand-400"></i><span id="lightboxDownloads">0</span> downloads</div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center space-x-3">
+                        <button id="lightboxLikeBtn" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center space-x-2 border border-slate-700">
+                            <i class="fas fa-heart text-red-500"></i>
+                            <span>Like</span>
+                        </button>
+                        <button id="lightboxSaveBtn" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center space-x-2 border border-slate-700">
+                            <i class="fas fa-bookmark text-yellow-500"></i>
+                            <span>Save</span>
+                        </button>
+                        <button id="lightboxDownloadBtn" class="bg-brand-600 hover:bg-brand-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center space-x-2 shadow-lg shadow-brand-500/20">
+                            <i class="fas fa-download"></i>
+                            <span>Download Free</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Auth Modal -->
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl p-6 sm:p-8 relative">
+            <button onclick="window.closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="fas fa-times text-lg"></i></button>
+
+            <div class="flex border-b border-slate-200 dark:border-slate-800 mb-6">
                 <button id="tabLogin" onclick="window.switchAuthTab('login')" class="flex-1 pb-3 text-center text-sm font-semibold text-brand-500 border-b-2 border-brand-500">Log In</button>
                 <button id="tabSignup" onclick="window.switchAuthTab('signup')" class="flex-1 pb-3 text-center text-sm font-semibold text-slate-400 border-b-2 border-transparent">Sign Up</button>
             </div>
 
             <form id="loginForm" onsubmit="window.handleLoginSubmit(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Email</label>
-                    <input type="email" required id="loginEmail" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 outline-none">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                    <input type="email" required id="loginEmail" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-brand-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Password</label>
-                    <input type="password" required id="loginPassword" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 outline-none">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                    <input type="password" required id="loginPassword" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-brand-500 outline-none">
                 </div>
                 <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl text-sm">Log In</button>
             </form>
 
             <form id="signupForm" onsubmit="window.handleSignupSubmit(event)" class="space-y-4 hidden">
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Full Name</label>
-                    <input type="text" required id="signupName" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 outline-none">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                    <input type="text" required id="signupName" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-brand-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Email</label>
-                    <input type="email" required id="signupEmail" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 outline-none">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                    <input type="email" required id="signupEmail" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-brand-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Password</label>
-                    <input type="password" required id="signupPassword" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 outline-none">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                    <input type="password" required id="signupPassword" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-brand-500 outline-none">
                 </div>
                 <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl text-sm">Create Global Account</button>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 2: Upload Modal -->
+    <!-- MODAL 3: Upload Modal with Progress Bar -->
     <div id="uploadModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-6 relative">
-            <button onclick="window.closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-2xl p-6 relative">
+            <button onclick="window.closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="fas fa-times text-lg"></i></button>
 
-            <h3 class="text-xl font-bold text-white mb-4">Upload Photo to Cloud</h3>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">Upload Photo to Cloud</h3>
 
             <form id="uploadForm" onsubmit="window.handleUploadSubmit(event)" class="space-y-4">
-                <!-- Direct Image File Input -->
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Select Image File (JPEG, PNG, WebP)</label>
-                    <input type="file" id="uploadFileInput" accept="image/jpeg, image/png, image/webp" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-600 file:text-white hover:file:bg-brand-500 cursor-pointer">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Select Image File (JPEG, PNG, WebP)</label>
+                    <input type="file" id="uploadFileInput" accept="image/jpeg, image/png, image/webp" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-600 file:text-white hover:file:bg-brand-500 cursor-pointer">
                 </div>
 
-                <div class="text-center text-xs text-slate-500 font-medium my-1">- OR -</div>
-
-                <!-- URL Alternative -->
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">Image Web URL (Optional)</label>
-                    <input type="text" id="uploadUrl" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 outline-none">
-                </div>
+                <div class="text-center text-xs text-slate-400 font-medium my-1">- OR -</div>
 
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Title</label>
-                    <input type="text" required id="uploadTitle" placeholder="Mountain Landscape" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-500 outline-none">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Image Web URL (Optional)</label>
+                    <input type="text" id="uploadUrl" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-brand-500 outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Category</label>
-                    <select id="uploadCategory" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Title</label>
+                    <input type="text" required id="uploadTitle" placeholder="Mountain Landscape" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-brand-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                    <select id="uploadCategory" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none">
                         <option value="Nature">Nature</option>
                         <option value="Architecture">Architecture</option>
                         <option value="Technology">Technology</option>
                         <option value="Animals">Animals</option>
                         <option value="Travel">Travel</option>
                     </select>
+                </div>
+
+                <!-- Upload Progress Bar Container -->
+                <div id="uploadProgressContainer" class="hidden space-y-1 pt-2">
+                    <div class="flex justify-between text-xs text-slate-400 font-medium">
+                        <span>Uploading & Optimizing...</span>
+                        <span id="uploadProgressText">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="uploadProgressBar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
+                    </div>
                 </div>
 
                 <button id="uploadSubmitBtn" type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl text-sm flex items-center justify-center space-x-2">
