@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenpicHub - Free High-Resolution Stock Photos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col antialiased">
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-20 right-5 z-50 transform translate-x-full transition-transform duration-300 ease-in-out bg-slate-800 text-white border border-brand-500/30 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none opacity-0">
+        <i id="toast-icon" class="fas fa-check-circle text-brand-500 text-lg"></i>
+        <span id="toast-message" class="text-sm font-medium">Notification message</span>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="resetView()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-brand-500/20">
+                        <i class="fas fa-camera-retro"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-white">Openpic<span class="text-brand-500">Hub</span></span>
+                </div>
+
+                <!-- Header Search (Visible on scrolled or desktop) -->
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="headerSearchInput" placeholder="Search free high-res photos..." class="w-full bg-slate-800 border border-slate-700/80 rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                    </div>
+                </div>
+
+                <!-- Desktop Actions -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <button id="uploadTriggerBtn" onclick="handleUploadClick()" class="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-full font-medium text-sm transition-all shadow-md hover:shadow-brand-500/20">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Upload Photo</span>
+                    </button>
+
+                    <!-- Dynamic Auth Container -->
+                    <div id="authNavContainer" class="flex items-center space-x-3">
+                        <button onclick="openAuthModal('login')" class="text-slate-300 hover:text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">Log In</button>
+                        <button onclick="openAuthModal('signup')" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium px-4 py-2 rounded-full border border-slate-700 transition-colors">Sign Up</button>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="flex md:hidden items-center space-x-2">
+                    <button onclick="handleUploadClick()" class="p-2 bg-brand-600 text-white rounded-lg text-sm">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                    <button id="mobileMenuBtn" class="p-2 text-slate-400 hover:text-white rounded-lg focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobileMenu" class="hidden md:hidden bg-slate-900 border-b border-slate-800 px-4 pt-2 pb-4 space-y-3">
+            <div class="relative w-full">
+                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="mobileSearchInput" placeholder="Search photos..." class="w-full bg-slate-800 border border-slate-700 rounded-full pl-10 pr-4 py-2 text-sm text-white">
+            </div>
+            <div id="mobileAuthNav" class="flex flex-col space-y-2 pt-2 border-t border-slate-800">
+                <button onclick="openAuthModal('login')" class="w-full text-left py-2 text-slate-300">Log In</button>
+                <button onclick="openAuthModal('signup')" class="w-full text-left py-2 text-brand-500 font-medium">Create Account</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <!-- Hero Banner -->
+        <section class="relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-16 md:py-24 px-4 overflow-hidden border-b border-slate-800/80">
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#22c55e_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+            
+            <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
+                <span class="inline-flex items-center space-x-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                    <i class="fas fa-check-circle text-xs"></i>
+                    <span>100% Free Copyright-Free Assets</span>
+                </span>
+                
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
+                    Stunning imagery for your <br class="hidden sm:inline"><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-emerald-300 to-teal-200">creative projects.</span>
+                </h1>
+                
+                <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto font-light">
+                    Over 2 million+ high-resolution, community-contributed stock photos. Free for commercial and personal use. Powered by OpenpicHub.
+                </p>
+
+                <!-- Hero Search Input -->
+                <div class="max-w-2xl mx-auto pt-2">
+                    <div class="relative flex items-center shadow-2xl rounded-2xl overflow-hidden bg-slate-800/90 border border-slate-700/80 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/30 transition-all">
+                        <i class="fas fa-search text-slate-400 text-lg pl-5 pr-2"></i>
+                        <input type="text" id="heroSearchInput" placeholder="Search photos, nature, wallpapers, technology..." class="w-full bg-transparent text-white px-2 py-4 text-sm sm:text-base placeholder-slate-400 focus:outline-none">
+                        <button onclick="triggerSearch('heroSearchInput')" class="bg-brand-600 hover:bg-brand-500 text-white px-6 py-4 font-semibold text-sm sm:text-base transition-colors flex items-center space-x-1 shrink-0">
+                            <span>Search</span>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs text-slate-400">
+                        <span class="font-medium text-slate-500">Trending:</span>
+                        <button onclick="setCategorySearch('Nature')" class="hover:text-white transition-colors">Nature</button> •
+                        <button onclick="setCategorySearch('Architecture')" class="hover:text-white transition-colors">Architecture</button> •
+                        <button onclick="setCategorySearch('Technology')" class="hover:text-white transition-colors">Technology</button> •
+                        <button onclick="setCategorySearch('Animals')" class="hover:text-white transition-colors">Animals</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Nav Bar -->
+        <section class="sticky top-16 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 py-3">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div id="categoryContainer" class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1 text-sm font-medium">
+                    <!-- Dynamic categories rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Photo Gallery -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 id="galleryTitle" class="text-xl font-bold text-white">Featured Photography</h2>
+                    <p id="gallerySubtitle" class="text-xs text-slate-400">Handpicked high-resolution photos for you</p>
+                </div>
+                <span id="photoCountBadge" class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full border border-slate-700">0 photos</span>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-20 bg-slate-800/40 rounded-3xl border border-dashed border-slate-700 my-6">
+                <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-500 text-2xl mb-4">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white">No photos found</h3>
+                <p class="text-slate-400 text-sm max-w-sm mx-auto mt-1 mb-6">We couldn't find any photos matching your current filter. Try searching for something else or upload one!</p>
+                <button onclick="resetView()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-2 rounded-full border border-slate-700">Clear Filters</button>
+            </div>
+
+            <!-- Responsive Gallery Grid -->
+            <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic Image Cards Rendered Here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800/80 py-12 text-slate-400 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center text-white text-sm font-bold">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <span class="text-base font-bold text-white">OpenpicHub</span>
+            </div>
+
+            <p class="text-center md:text-left">
+                Built with HTML5, CSS (Tailwind), & Vanilla JS for LinkedIn Web Portfolio Showcase. All images are free under CC0 / Unsplash license.
+            </p>
+
+            <div class="flex items-center space-x-4 text-base">
+                <a href="#" class="hover:text-brand-400 transition-colors"><i class="fab fa-github"></i></a>
+                <a href="#" class="hover:text-brand-400 transition-colors"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="hover:text-brand-400 transition-colors"><i class="fab fa-twitter"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Auth Modal (Login / Sign Up) -->
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 sm:p-8 shadow-2xl relative transform scale-95 transition-transform duration-200" id="authModalContainer">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Auth Tabs -->
+            <div class="flex border-b border-slate-800 mb-6">
+                <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-center text-sm font-semibold text-brand-500 border-b-2 border-brand-500">Log In</button>
+                <button id="tabSignup" onclick="switchAuthTab('signup')" class="flex-1 pb-3 text-center text-sm font-semibold text-slate-400 border-b-2 border-transparent">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                    <input type="email" required id="loginEmail" placeholder="you@example.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                    <input type="password" required id="loginPassword" placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl text-sm transition-colors shadow-lg shadow-brand-500/20">
+                    Log In to OpenpicHub
+                </button>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form id="signupForm" onsubmit="handleSignupSubmit(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+                    <input type="text" required id="signupName" placeholder="Alex Morgan" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                    <input type="email" required id="signupEmail" placeholder="you@example.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                    <input type="password" required id="signupPassword" placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl text-sm transition-colors shadow-lg shadow-brand-500/20">
+                    Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Upload Photo Modal -->
+    <div id="uploadModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-6 sm:p-8 shadow-2xl relative transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto" id="uploadModalContainer">
+            <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-white">Upload High-Res Photo</h3>
+                <p class="text-xs text-slate-400 mt-1">Share your free copyright photos with the OpenpicHub community.</p>
+            </div>
+
+            <form id="uploadForm" onsubmit="handleUploadSubmit(event)" class="space-y-4">
+                <!-- Image Drag & Drop Dropzone -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Select Photo File</label>
+                    <div id="dropzone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-brand-500 bg-slate-800/50 rounded-2xl p-6 text-center cursor-pointer transition-colors relative">
+                        <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                        <div id="dropzonePrompt" class="space-y-2">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-brand-500"></i>
+                            <p class="text-sm font-medium text-slate-200">Click to upload or drag image here</p>
+                            <p class="text-xs text-slate-500">PNG, JPG, WEBP up to 10MB</p>
+                        </div>
+                        <div id="dropzonePreview" class="hidden relative">
+                            <img id="previewImg" src="" alt="Upload Preview" class="max-h-48 rounded-xl mx-auto object-cover">
+                            <span class="text-xs text-brand-400 block mt-2 font-medium"><i class="fas fa-check"></i> Image selected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Title / Caption</label>
+                    <input type="text" required id="uploadTitle" placeholder="e.g., Misty Mountain Sunrise" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Category</label>
+                        <select id="uploadCategory" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <option value="Nature">Nature</option>
+                            <option value="Architecture">Architecture</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Animals">Animals</option>
+                            <option value="Business">Business</option>
+                            <option value="Food">Food</option>
+                            <option value="Travel">Travel</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Tags (Comma separated)</label>
+                        <input type="text" id="uploadTags" placeholder="forest, sun, trees" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl text-sm transition-colors shadow-lg shadow-brand-500/20 mt-2">
+                    Publish Photo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Photo Detail Inspector -->
+    <div id="photoModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4 hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[92vh]" id="photoModalContainer">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/80">
+                <div class="flex items-center space-x-3">
+                    <img id="detailUploaderAvatar" src="" class="w-9 h-9 rounded-full object-cover border border-slate-700">
+                    <div>
+                        <h4 id="detailUploaderName" class="text-sm font-semibold text-white">Name</h4>
+                        <p id="detailCategory" class="text-xs text-brand-400">Category</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button id="detailLikeBtn" onclick="toggleDetailLike()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-colors">
+                        <i class="far fa-heart text-red-400"></i>
+                    </button>
+                    <a id="detailDownloadBtn" href="#" target="_blank" download class="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center space-x-2 transition-colors">
+                        <i class="fas fa-download"></i>
+                        <span>Download Free</span>
+                    </a>
+                    <button onclick="closePhotoModal()" class="p-2 text-slate-400 hover:text-white text-lg">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="flex-grow overflow-y-auto p-4 sm:p-6 space-y-6">
+                <!-- Large Image Preview -->
+                <div class="bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center max-h-[55vh] border border-slate-800">
+                    <img id="detailImg" src="" alt="" class="max-h-[55vh] w-auto object-contain">
+                </div>
+
+                <!-- Info Grid -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-slate-800/80 pt-4">
+                    <div>
+                        <h3 id="detailTitle" class="text-xl font-bold text-white">Title</h3>
+                        <div id="detailTags" class="flex flex-wrap gap-1.5 mt-2">
+                            <!-- Dynamic Tag Badges -->
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-6 text-xs text-slate-400 shrink-0">
+                        <div>
+                            <span class="block text-slate-500 font-medium">Views</span>
+                            <span id="detailViews" class="text-sm font-semibold text-slate-200">1,240</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-500 font-medium">Downloads</span>
+                            <span id="detailDownloads" class="text-sm font-semibold text-slate-200">482</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-500 font-medium">License</span>
+                            <span class="text-sm font-semibold text-brand-400">Free CC0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
