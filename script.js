@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Firebase configuration
+// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAqXB2ttD6DWoywN4GSol93CZOSAKdBbwA",
   authDomain: "openpichub-ebb9a.firebaseapp.com",
@@ -27,8 +27,9 @@ let searchQuery = '';
 let currentViewMode = 'all'; // 'all' | 'saved' | 'my'
 let activeLightboxPhoto = null;
 
-// Local Saved Favorites ID List
+// Local Stored Lists
 let savedPhotoIds = JSON.parse(localStorage.getItem('openpichub_saved') || '[]');
+let likedPhotoIds = JSON.parse(localStorage.getItem('openpichub_liked') || '[]');
 
 const categories = ['All', 'Nature', 'Architecture', 'Technology', 'Animals', 'Travel'];
 
@@ -91,7 +92,6 @@ function updateThemeIcons(theme) {
     if (mobileIcon) mobileIcon.className = theme === 'dark' ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-slate-700';
 }
 
-// LoadSavedTheme
 if (localStorage.getItem('openpichub_theme') === 'light') {
     document.documentElement.classList.remove('dark');
     updateThemeIcons('light');
@@ -104,9 +104,14 @@ window.setViewMode = (mode) => {
         window.openAuthModal('login');
         return;
     }
+    if (mode === 'saved' && !currentUser) {
+        showToast("Please log in to view saved photos", "error");
+        window.openAuthModal('login');
+        return;
+    }
+
     currentViewMode = mode;
     
-    // UI Tab styling
     ['all', 'saved', 'my'].forEach(m => {
         const btn = document.getElementById(`viewTab${m.charAt(0).toUpperCase() + m.slice(1)}`);
         if (btn) {
@@ -132,22 +137,30 @@ window.setViewMode = (mode) => {
         if (hero) hero.classList.add('hidden');
         if (catSection) catSection.classList.add('hidden');
         if (title) title.textContent = mode === 'saved' ? "Your Saved Favorites" : "My Uploaded Photos";
-        if (subtitle) subtitle.textContent = mode === 'saved' ? "Photos saved locally in your favorites collection" : "Photos uploaded by your account";
+        if (subtitle) subtitle.textContent = mode === 'saved' ? "Photos saved in your collection" : "Photos uploaded by your account";
     }
 
     renderGallery();
 };
 
-// Toggle Save Favorite Photo
+// 🔖 Toggle Save Favorite Photo (Requires Account)
 window.toggleSavePhoto = (e, photoId) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
+
+    if (!currentUser) {
+        showToast("Please log in first to save favorite photos!", "error");
+        window.openAuthModal('login');
+        return;
+    }
+
     if (savedPhotoIds.includes(photoId)) {
         savedPhotoIds = savedPhotoIds.filter(id => id !== photoId);
         showToast("Removed from saved favorites");
     } else {
         savedPhotoIds.push(photoId);
-        showToast("Added to saved favorites!");
+        showToast("Added to saved favorites! 🔖");
     }
+
     localStorage.setItem('openpichub_saved', JSON.stringify(savedPhotoIds));
     updateSavedBadge();
     renderGallery();
@@ -158,23 +171,39 @@ function updateSavedBadge() {
     if (badge) badge.textContent = savedPhotoIds.length;
 }
 
-// Like Photo (Firebase Realtime Counter)
+// ❤️ Like / Unlike Photo (Anyone can like once - Toggle logic)
 window.likePhoto = async (e, photoId) => {
     if (e) e.stopPropagation();
+
+    const photoRef = doc(db, "photos", photoId);
+    const isAlreadyLiked = likedPhotoIds.includes(photoId);
+
     try {
-        const photoRef = doc(db, "photos", photoId);
-        await updateDoc(photoRef, {
-            likes: increment(1)
-        });
-        showToast("Liked photo! ❤️");
+        if (isAlreadyLiked) {
+            await updateDoc(photoRef, {
+                likes: increment(-1)
+            });
+            likedPhotoIds = likedPhotoIds.filter(id => id !== photoId);
+            showToast("Unliked photo");
+        } else {
+            await updateDoc(photoRef, {
+                likes: increment(1)
+            });
+            likedPhotoIds.push(photoId);
+            showToast("Liked photo! ❤️");
+        }
+
+        localStorage.setItem('openpichub_liked', JSON.stringify(likedPhotoIds));
+        renderGallery();
     } catch (err) {
         console.error("Like error:", err);
+        showToast("Failed to update like", "error");
     }
 };
 
 // Delete Photo (For owner)
 window.deletePhoto = async (e, photoId) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     if (!confirm("Are you sure you want to delete this photo permanently?")) return;
     try {
         await deleteDoc(doc(db, "photos", photoId));
@@ -190,7 +219,6 @@ window.openLightbox = async (photoId) => {
     if (!photo) return;
     activeLightboxPhoto = photo;
 
-    // Increment View Count
     try {
         const photoRef = doc(db, "photos", photoId);
         await updateDoc(photoRef, { views: increment(1) });
@@ -201,6 +229,8 @@ window.openLightbox = async (photoId) => {
 };
 
 function updateLightboxUI(photo) {
+    const isLiked = likedPhotoIds.includes(photo.id);
+
     document.getElementById('lightboxImage').src = photo.url;
     document.getElementById('lightboxTitle').textContent = photo.title || 'Untitled';
     document.getElementById('lightboxCategory').textContent = photo.category || 'General';
@@ -213,6 +243,7 @@ function updateLightboxUI(photo) {
     document.getElementById('lightboxDownloads').textContent = photo.downloads || 0;
 
     const likeBtn = document.getElementById('lightboxLikeBtn');
+    likeBtn.innerHTML = `<i class="${isLiked ? 'fas' : 'far'} fa-heart text-red-500"></i><span>${isLiked ? 'Liked' : 'Like'}</span>`;
     likeBtn.onclick = (e) => window.likePhoto(e, photo.id);
 
     const saveBtn = document.getElementById('lightboxSaveBtn');
@@ -521,6 +552,7 @@ function renderGallery() {
 
     grid.innerHTML = filtered.map(photo => {
         const isSaved = savedPhotoIds.includes(photo.id);
+        const isLiked = likedPhotoIds.includes(photo.id);
         const isOwner = currentUser && photo.uploader && photo.uploader.uid === currentUser.uid;
 
         return `
@@ -555,8 +587,8 @@ function renderGallery() {
                     <span class="text-brand-600 dark:text-brand-400 font-semibold">${photo.category || 'General'}</span>
                     <div class="flex items-center space-x-3">
                         <button onclick="window.likePhoto(event, '${photo.id}')" class="hover:text-red-500 transition-colors flex items-center space-x-1">
-                            <i class="fas fa-heart text-red-500"></i>
-                            <span>${photo.likes || 0}</span>
+                            <i class="${isLiked ? 'fas text-red-500' : 'far text-red-500'} fa-heart"></i>
+                            <span class="${isLiked ? 'font-bold text-red-500' : ''}">${photo.likes || 0}</span>
                         </button>
                         <span><i class="fas fa-eye text-slate-400 mr-1"></i>${photo.views || 0}</span>
                     </div>
